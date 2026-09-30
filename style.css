@@ -789,3 +789,138 @@ a.card:hover {
 .modal__body::-webkit-scrollbar-thumb:hover {
   background: #6a6a6a;
 }
+
+.pay {
+  --x: 50%;
+  --y: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  margin-top: var(--gap);
+  padding: 22px 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background:
+    radial-gradient(360px circle at var(--x) var(--y), rgba(255, 255, 255, 0.08), transparent 65%),
+    var(--surface);
+  text-align: left;
+  transition: border-color 0.3s, transform 0.3s var(--ease);
+  animation: settle 0.9s var(--ease) 0.65s backwards;
+}
+
+.pay:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-2px);
+}
+
+.pay:active {
+  transform: scale(0.99);
+}
+
+.pay__info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 20px;
+  row-gap: 4px;
+}
+
+.pay__title {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2vw, 30px);
+}
+
+.pay__text {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.pay__shape {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  transition: transform 0.5s var(--ease), border-color 0.3s;
+}
+
+.pay:hover .pay__shape {
+  border-color: var(--text);
+  transform: scale(1.15);
+}
+
+.receipt {
+  display: grid;
+  gap: 20px;
+}
+
+.receipt__list {
+  display: grid;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.receipt__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+}
+
+.receipt__row + .receipt__row {
+  border-top: 1px solid var(--line);
+}
+
+.receipt__label {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.receipt__value {
+  font-family: var(--font-display);
+  font-size: 20px;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.status::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status--paid {
+  color: #6fdc8c;
+}
+
+.status--unpaid {
+  color: #f0b35a;
+}
+
+a.form__submit {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}
+
+@media (max-width: 560px) {
+  .pay {
+    margin-top: 10px;
+    padding: 20px 22px;
+  }
+}

@@ -8,7 +8,7 @@ const config = {
     reviews: '11L3pRFrOdZsefk7LNERb96tr4-uMbkK149www4NbpwA',
     works: '1PIGR6IhORhHIA7xJDAPFZv8IKL6ys94xYM1reEirn9g'
   },
-  orderEndpoint: 'https://script.google.com/macros/s/AKfycbxr4mtZRZAB2mGRyif1urCk0tq_xRYcLIB2T_VtE8PI7RFeJd5ShvAJ1X0ULqsM_rjp/exec'
+  orderEndpoint: 'https://script.google.com/macros/s/AKfycbwT317xHa5NF9fqSABOFfmMmb1ofQPxHUdxTRcMofQySKvo42D85aOHg_hC_CGdmFcamQ/exec'
 };
 
 tiles.forEach((tile) => {
@@ -70,7 +70,8 @@ const sections = {
   reviews: { title: 'Reviews', render: renderReviews },
   work: { title: 'Our work', render: renderWork },
   about: { title: 'About us', render: renderAbout },
-  pricing: { title: 'Pricing', render: renderPricing }
+  pricing: { title: 'Pricing', render: renderPricing },
+  pay: { title: 'Pay for an order', render: renderPay }
 };
 
 function createElement(tag, className, text) {
@@ -401,3 +402,136 @@ async function sendOrder(data) {
     body: JSON.stringify(data)
   });
 }
+
+async function findOrder(id) {
+  const response = await fetch(`${config.orderEndpoint}?order=${encodeURIComponent(id)}`);
+  if (!response.ok) throw new Error('Order request failed');
+  return response.json();
+}
+
+function isPaymentLink(payment) {
+  return /^https?:\/\//i.test(payment);
+}
+
+function createStatus(paid) {
+  return createElement('span', `status ${paid ? 'status--paid' : 'status--unpaid'}`, paid ? 'Paid' : 'Not paid');
+}
+
+function createReceiptRow(label, value) {
+  const row = createElement('div', 'receipt__row');
+  const term = createElement('dt', 'receipt__label', label);
+  const details = createElement('dd', 'receipt__value');
+
+  if (value instanceof Node) details.append(value);
+  else details.textContent = value;
+
+  row.append(term, details);
+  return row;
+}
+
+function createPayAction(order) {
+  const url = isPaymentLink(order.payment) ? safeUrl(order.payment) : null;
+
+  if (url) {
+    const link = createElement('a', 'form__submit', 'Go to payment');
+    link.href = url.href;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    return link;
+  }
+
+  const button = createElement('button', 'form__submit', 'Copy card number');
+  button.type = 'button';
+
+  button.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(order.payment);
+      button.textContent = 'Card number copied';
+    } catch {
+      button.textContent = 'Copy failed, select the number manually';
+    }
+
+    setTimeout(() => {
+      button.textContent = 'Copy card number';
+    }, 2000);
+  });
+
+  return button;
+}
+
+function createOrderView(order) {
+  const view = createElement('div', 'receipt');
+  const list = createElement('dl', 'receipt__list');
+
+  list.append(
+    createReceiptRow('Client', order.username),
+    createReceiptRow('Amount to pay', order.amount),
+    createReceiptRow('Status', createStatus(order.paid))
+  );
+
+  if (!order.paid && !isPaymentLink(order.payment)) {
+    list.append(createReceiptRow('Card number', order.payment));
+  }
+
+  view.append(list);
+
+  if (order.paid) {
+    view.append(createElement('p', 'modal__note', 'This order is already paid. Thank you!'));
+  } else {
+    view.append(createPayAction(order));
+  }
+
+  return view;
+}
+
+function renderPay() {
+  const form = createElement('form', 'form');
+  const input = createInput('input', 'For example, 12345', 'Order number', 32);
+  const error = createElement('p', 'form__error');
+  const submit = createElement('button', 'form__submit', 'Find order');
+  const result = createElement('div', 'pay__result');
+
+  form.noValidate = true;
+  submit.type = 'submit';
+  error.setAttribute('role', 'alert');
+
+  form.append(createField('Order number', input), error, submit, result);
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const id = input.value.trim();
+
+    if (!id) {
+      error.textContent = 'Enter your order number.';
+      return;
+    }
+
+    error.textContent = '';
+    result.replaceChildren();
+    submit.disabled = true;
+    submit.textContent = 'Searching…';
+
+    try {
+      const order = await findOrder(id);
+
+      if (order.found) result.replaceChildren(createOrderView(order));
+      else error.textContent = 'Order not found. Check the number and try again.';
+    } catch {
+      error.textContent = 'Could not load the order. Please try again later.';
+    }
+
+    submit.disabled = false;
+    submit.textContent = 'Find order';
+  });
+
+  return form;
+}
+
+const payButton = document.querySelector('.pay');
+
+payButton.addEventListener('pointermove', (event) => {
+  const rect = payButton.getBoundingClientRect();
+  payButton.style.setProperty('--x', `${event.clientX - rect.left}px`);
+  payButton.style.setProperty('--y', `${event.clientY - rect.top}px`);
+});
