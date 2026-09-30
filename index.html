@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050505">
+  <title>FORMIS</title>
+  <meta name="description" content="FORMIS is a design and web development studio. We build websites for businesses.">
+  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cal+Sans&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <a class="header__logo" href="index.html" aria-label="FORMIS home">
+      <img src="logo.png" alt="FORMIS design &amp; webdev">
+    </a>
+    <nav class="nav" aria-label="Main">
+      <button class="nav__item" type="button" data-target="order">Order a website</button>
+      <button class="nav__item" type="button" data-target="reviews">Reviews</button>
+      <button class="nav__item" type="button" data-target="work">Our work</button>
+      <button class="nav__item" type="button" data-target="about">About us</button>
+      <button class="nav__item" type="button" data-target="pricing">Pricing</button>
+    </nav>
+  </header>
+
+  <main class="board">
+    <button class="tile tile--reviews" type="button" data-tile="reviews">
+      <span class="tile__shape tile__shape--circle"></span>
+      <span class="tile__title">Reviews</span>
+      <span class="tile__text">What our clients say</span>
+    </button>
+
+    <button class="tile tile--order" type="button" data-tile="order">
+      <span class="tile__shape tile__shape--square"></span>
+      <span class="tile__title">Order a website</span>
+      <span class="tile__text">Tell us about your business and get a site built around it.</span>
+    </button>
+
+    <button class="tile tile--about" type="button" data-tile="about">
+      <span class="tile__shape tile__shape--square"></span>
+      <span class="tile__title">About us</span>
+      <span class="tile__text">Who builds your website</span>
+    </button>
+
+    <button class="tile tile--work" type="button" data-tile="work">
+      <span class="tile__shape tile__shape--circle"></span>
+      <span class="tile__title">Our work</span>
+      <span class="tile__text">Websites we have designed and built</span>
+    </button>
+
+    <button class="tile tile--pricing" type="button" data-tile="pricing">
+      <span class="tile__shape tile__shape--circle"></span>
+      <span class="tile__title">Pricing</span>
+      <span class="tile__text">Clear packages, no surprises</span>
+    </button>
+  </main>
+
+  <footer class="footer">
+    <a class="footer__mail" href="mailto:formisworkk@gmail.com">formisworkk@gmail.com</a>
+    <img class="footer__logo" src="logo.png" alt="FORMIS">
+  </footer>
+
+  <dialog class="modal" id="modal" aria-labelledby="modal-title">
+    <div class="modal__head">
+      <h2 class="modal__title" id="modal-title"></h2>
+      <button class="modal__close" type="button" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <path d="M5 5l14 14M19 5L5 19"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal__body" id="modal-body"></div>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>
