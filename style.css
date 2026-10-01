@@ -790,6 +790,13 @@ a.card:hover {
   background: #6a6a6a;
 }
 
+.actions {
+  display: flex;
+  gap: var(--gap);
+  margin-top: var(--gap);
+}
+
+
 .pay {
   --x: 50%;
   --y: 50%;
@@ -797,8 +804,7 @@ a.card:hover {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  width: 100%;
-  margin-top: var(--gap);
+  flex: 1;
   padding: 22px 28px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -919,8 +925,58 @@ a.form__submit {
 }
 
 @media (max-width: 560px) {
-  .pay {
+    .actions {
+    flex-direction: column;
+    gap: 10px;
     margin-top: 10px;
+  }
+
+  .pay {
     padding: 20px 22px;
   }
+
 }
+
+.pay__shape--square {
+  border-radius: 0;
+  animation: turn 24s linear infinite;
+}
+
+.card--button {
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.card--button:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-3px);
+}
+
+.guide {
+  display: grid;
+  gap: 20px;
+}
+
+.guide__back {
+  width: fit-content;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 14px;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+
+.guide__back:hover {
+  color: var(--text);
+}
+
+.guide__title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.15;
+}
+
