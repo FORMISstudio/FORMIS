@@ -72,7 +72,9 @@ const sections = {
   work: { title: 'Our work', render: renderWork },
   about: { title: 'About us', render: renderAbout },
   pricing: { title: 'Pricing', render: renderPricing },
-  pay: { title: 'Pay for an order', render: renderPay }
+  pay: { title: 'Pay for an order', render: renderPay },
+  guides: { title: 'Instructions', render: renderGuides }
+
 };
 
 function createElement(tag, className, text) {
@@ -273,14 +275,16 @@ function createField(label, control) {
   return field;
 }
 
-function createSuccess(messenger) {
+function createSuccess(messenger, code) {
   const success = createElement('div', 'success');
   success.append(
     createElement('h3', 'card__title', 'Request sent'),
-    createElement('p', 'card__text', `Thank you! We will contact you in ${messenger} once we review your request. It may take a little time, but we always reply.`)
+    createElement('p', 'card__price', `Order number: ${code}`),
+    createElement('p', 'card__text', `Save this number, you will need it to pay and check your order. We will contact you in ${messenger} once we review your request. It may take a little time, but we always reply.`)
   );
   return success;
 }
+
 
 function renderOrder() {
   const form = createElement('form', 'form');
@@ -397,12 +401,16 @@ modal.addEventListener('cancel', (event) => {
 });
 
 async function sendOrder(data) {
-  await fetch(config.orderEndpoint, {
+  const response = await fetch(config.orderEndpoint, {
     method: 'POST',
-    mode: 'no-cors',
     body: JSON.stringify(data)
   });
+  const result = await response.json();
+
+  if (!result.ok) throw new Error('Order request failed');
+  return result;
 }
+
 
 async function findOrder(id) {
   const response = await fetch(`${config.orderEndpoint}?order=${encodeURIComponent(id)}`);
@@ -531,8 +539,43 @@ function renderPay() {
 
 const payButton = document.querySelector('.pay');
 
-payButton.addEventListener('pointermove', (event) => {
-  const rect = payButton.getBoundingClientRect();
-  payButton.style.setProperty('--x', `${event.clientX - rect.left}px`);
-  payButton.style.setProperty('--y', `${event.clientY - rect.top}px`);
+document.querySelectorAll('.pay').forEach((button) => {
+  button.addEventListener('pointermove', (event) => {
+    const rect = button.getBoundingClientRect();
+    button.style.setProperty('--x', `${event.clientX - rect.left}px`);
+    button.style.setProperty('--y', `${event.clientY - rect.top}px`);
+  });
 });
+
+});
+
+async function renderGuides() {
+  const records = await loadSheet('guides');
+
+  return createCards(records, (item) => {
+    const card = createElement('button', 'card card--button');
+    card.type = 'button';
+    card.append(
+      createElement('h3', 'card__title', item.title),
+      createElement('p', 'card__link', 'Read instruction')
+    );
+    card.addEventListener('click', () => showGuide(item));
+    return card;
+  }, 'Instructions will appear here soon.');
+}
+
+function showGuide(item) {
+  const article = createElement('article', 'guide');
+  const back = createElement('button', 'guide__back', '← All instructions');
+  const text = createElement('div', 'modal__text');
+
+  back.type = 'button';
+  back.addEventListener('click', () => openSection('guides'));
+
+  item.text.split(/\n+/).forEach((line) => text.append(createElement('p', '', line)));
+  article.append(back, createElement('h3', 'guide__title', item.title), text);
+
+  modalBody.replaceChildren(article);
+  modalBody.scrollTop = 0;
+}
+
