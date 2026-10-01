@@ -74,7 +74,6 @@ const sections = {
   pricing: { title: 'Pricing', render: renderPricing },
   pay: { title: 'Pay for an order', render: renderPay },
   guides: { title: 'Instructions', render: renderGuides }
-
 };
 
 function createElement(tag, className, text) {
@@ -226,6 +225,36 @@ async function renderWork() {
   }, 'Our work will appear here soon.');
 }
 
+async function renderGuides() {
+  const records = await loadSheet('guides');
+
+  return createCards(records, (item) => {
+    const card = createElement('button', 'card card--button');
+    card.type = 'button';
+    card.append(
+      createElement('h3', 'card__title', item.title),
+      createElement('p', 'card__link', 'Read instruction')
+    );
+    card.addEventListener('click', () => showGuide(item));
+    return card;
+  }, 'Instructions will appear here soon.');
+}
+
+function showGuide(item) {
+  const article = createElement('article', 'guide');
+  const back = createElement('button', 'guide__back', '← All instructions');
+  const text = createElement('div', 'modal__text');
+
+  back.type = 'button';
+  back.addEventListener('click', () => openSection('guides'));
+
+  item.text.split(/\n+/).forEach((line) => text.append(createElement('p', '', line)));
+  article.append(back, createElement('h3', 'guide__title', item.title), text);
+
+  modalBody.replaceChildren(article);
+  modalBody.scrollTop = 0;
+}
+
 function createChoice(options, onChange) {
   const group = createElement('div', 'choice');
   let value = '';
@@ -285,6 +314,16 @@ function createSuccess(messenger, code) {
   return success;
 }
 
+async function sendOrder(data) {
+  const response = await fetch(config.orderEndpoint, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+  const result = await response.json();
+
+  if (!result.ok) throw new Error('Order request failed');
+  return result;
+}
 
 function renderOrder() {
   const form = createElement('form', 'form');
@@ -343,8 +382,8 @@ function renderOrder() {
     submit.textContent = 'Sending…';
 
     try {
-      await sendOrder(data);
-      modalBody.replaceChildren(createSuccess(data.messenger));
+      const { code } = await sendOrder(data);
+      modalBody.replaceChildren(createSuccess(data.messenger, code));
     } catch {
       error.textContent = 'Could not send the form. Check your connection and try again.';
       submit.disabled = false;
@@ -354,63 +393,6 @@ function renderOrder() {
 
   return form;
 }
-
-async function openSection(name) {
-  const section = sections[name];
-  activeSection = name;
-
-  modalTitle.textContent = section.title;
-  modalBody.replaceChildren(createElement('div', 'loader'));
-  if (!modal.open) modal.showModal();
-
-  try {
-    const content = await section.render();
-    if (activeSection === name) modalBody.replaceChildren(content);
-  } catch {
-    if (activeSection === name) {
-      modalBody.replaceChildren(createElement('p', 'modal__note', 'Could not load this section. Please try again later.'));
-    }
-  }
-}
-
-function closeModal() {
-  if (modal.classList.contains('is-closing')) return;
-
-  activeSection = null;
-  modal.classList.add('is-closing');
-
-  setTimeout(() => {
-    modal.classList.remove('is-closing');
-    modal.close();
-  }, 200);
-}
-
-document.querySelectorAll('[data-tile], [data-target]').forEach((trigger) => {
-  trigger.addEventListener('click', () => openSection(trigger.dataset.tile || trigger.dataset.target));
-});
-
-modal.querySelector('.modal__close').addEventListener('click', closeModal);
-
-modal.addEventListener('click', (event) => {
-  if (event.target === modal) closeModal();
-});
-
-modal.addEventListener('cancel', (event) => {
-  event.preventDefault();
-  closeModal();
-});
-
-async function sendOrder(data) {
-  const response = await fetch(config.orderEndpoint, {
-    method: 'POST',
-    body: JSON.stringify(data)
-  });
-  const result = await response.json();
-
-  if (!result.ok) throw new Error('Order request failed');
-  return result;
-}
-
 
 async function findOrder(id) {
   const response = await fetch(`${config.orderEndpoint}?order=${encodeURIComponent(id)}`);
@@ -537,7 +519,39 @@ function renderPay() {
   return form;
 }
 
-const payButton = document.querySelector('.pay');
+async function openSection(name) {
+  const section = sections[name];
+  activeSection = name;
+
+  modalTitle.textContent = section.title;
+  modalBody.replaceChildren(createElement('div', 'loader'));
+  if (!modal.open) modal.showModal();
+
+  try {
+    const content = await section.render();
+    if (activeSection === name) modalBody.replaceChildren(content);
+  } catch {
+    if (activeSection === name) {
+      modalBody.replaceChildren(createElement('p', 'modal__note', 'Could not load this section. Please try again later.'));
+    }
+  }
+}
+
+function closeModal() {
+  if (modal.classList.contains('is-closing')) return;
+
+  activeSection = null;
+  modal.classList.add('is-closing');
+
+  setTimeout(() => {
+    modal.classList.remove('is-closing');
+    modal.close();
+  }, 200);
+}
+
+document.querySelectorAll('[data-tile], [data-target]').forEach((trigger) => {
+  trigger.addEventListener('click', () => openSection(trigger.dataset.tile || trigger.dataset.target));
+});
 
 document.querySelectorAll('.pay').forEach((button) => {
   button.addEventListener('pointermove', (event) => {
@@ -547,35 +561,13 @@ document.querySelectorAll('.pay').forEach((button) => {
   });
 });
 
+modal.querySelector('.modal__close').addEventListener('click', closeModal);
+
+modal.addEventListener('click', (event) => {
+  if (event.target === modal) closeModal();
 });
 
-async function renderGuides() {
-  const records = await loadSheet('guides');
-
-  return createCards(records, (item) => {
-    const card = createElement('button', 'card card--button');
-    card.type = 'button';
-    card.append(
-      createElement('h3', 'card__title', item.title),
-      createElement('p', 'card__link', 'Read instruction')
-    );
-    card.addEventListener('click', () => showGuide(item));
-    return card;
-  }, 'Instructions will appear here soon.');
-}
-
-function showGuide(item) {
-  const article = createElement('article', 'guide');
-  const back = createElement('button', 'guide__back', '← All instructions');
-  const text = createElement('div', 'modal__text');
-
-  back.type = 'button';
-  back.addEventListener('click', () => openSection('guides'));
-
-  item.text.split(/\n+/).forEach((line) => text.append(createElement('p', '', line)));
-  article.append(back, createElement('h3', 'guide__title', item.title), text);
-
-  modalBody.replaceChildren(article);
-  modalBody.scrollTop = 0;
-}
-
+modal.addEventListener('cancel', (event) => {
+  event.preventDefault();
+  closeModal();
+});
