@@ -6,7 +6,8 @@ const config = {
   sheets: {
     pricing: '1kp7bSXEfGT-DuPdD8g8U8N_P9Sn95YkCH5HTYPV03Z4',
     reviews: '11L3pRFrOdZsefk7LNERb96tr4-uMbkK149www4NbpwA',
-    works: '1PIGR6IhORhHIA7xJDAPFZv8IKL6ys94xYM1reEirn9g'
+    works: '1PIGR6IhORhHIA7xJDAPFZv8IKL6ys94xYM1reEirn9g',
+    guides: '1CqmaXEMdm8mryOhGViVcjk4DUFRIC-GZLaeZw9gxOnk'
   },
   orderEndpoint: 'https://script.google.com/macros/s/AKfycbwT317xHa5NF9fqSABOFfmMmb1ofQPxHUdxTRcMofQySKvo42D85aOHg_hC_CGdmFcamQ/exec'
 };
