@@ -85,7 +85,9 @@ const uk = {
   "Link to a site you like (optional)": "Посилання на сайт, який подобається (необов’язково)",
   "Promo code (optional)": "Промокод (необов’язково)",
   "Promo code applied: -{discount}%": "Промокод застосовано: -{discount}%",
-  "Promo code not found. The order was created at full price.": "Промокод не знайдено. Замовлення створено за повною ціною."
+  "Promo code not found. The order was created at full price.": "Промокод не знайдено. Замовлення створено за повною ціною.",
+  "I agree with the [terms of work]": "Я погоджуюся з [умовами роботи]",
+  "Please accept the terms of work to continue.": "Підтвердьте згоду з умовами роботи, щоб продовжити."
 };
 
 const ru = {
@@ -160,7 +162,9 @@ const ru = {
   "Link to a site you like (optional)": "Ссылка на сайт, который нравится (необязательно)",
   "Promo code (optional)": "Промокод (необязательно)",
   "Promo code applied: -{discount}%": "Промокод применён: -{discount}%",
-  "Promo code not found. The order was created at full price.": "Промокод не найден. Заказ создан по полной цене."
+  "Promo code not found. The order was created at full price.": "Промокод не найден. Заказ создан по полной цене.",
+  "I agree with the [terms of work]": "Я согласен(на) с [условиями работы]",
+  "Please accept the terms of work to continue.": "Подтвердите согласие с условиями работы, чтобы продолжить."
 };
 
 const dictionaries = { uk, ru };
@@ -507,6 +511,23 @@ async function sendOrder(data) {
   return result;
 }
 
+function createConsent() {
+  const node = createElement('label', 'consent');
+  const box = createElement('input');
+  const text = createElement('span');
+  const [before, linkText, after] = t('I agree with the [terms of work]').split(/[\[\]]/);
+  const link = createElement('a', '', linkText);
+
+  box.type = 'checkbox';
+  link.href = '?guide=terms-of-work';
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  text.append(before, link, after);
+  node.append(box, text);
+
+  return { node, box };
+}
+
 function renderOrder() {
   const form = createElement('form', 'form');
   form.noValidate = true;
@@ -521,6 +542,7 @@ function renderOrder() {
   const deadline = createInput('input', t('Desired deadline (optional)'), t('Deadline'), 64);
   const example = createInput('input', t('Link to a site you like (optional)'), t('Example'), 200);
   const promo = createInput('input', t('Promo code (optional)'), t('Promo code'), 32);
+  const consent = createConsent();
   const trap = createElement('input', 'form__trap');
   const error = createElement('p', 'form__error');
   const submit = createElement('button', 'form__submit', t('Send request'));
@@ -542,6 +564,7 @@ function renderOrder() {
     createField(t('Example'), example),
     createField(t('Note'), note),
     createField(t('Promo code'), promo),
+    consent.node,
     trap,
     error,
     submit,
@@ -565,6 +588,11 @@ function renderOrder() {
 
     if (!data.siteType || !data.messenger || !data.username || !data.description) {
       error.textContent = t('Please choose a website type and messenger, then fill in your username and description.');
+      return;
+    }
+
+    if (!consent.box.checked) {
+      error.textContent = t('Please accept the terms of work to continue.');
       return;
     }
 
@@ -884,3 +912,25 @@ if (linkedOrder) {
   pendingOrder = linkedOrder;
   openSection('pay');
 }
+
+function slugify(value) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+async function openLinkedGuide(slug) {
+  try {
+    const records = await loadSheet('guides');
+    const index = sheetCache.guides.findIndex((item) => slugify(item.title) === slug);
+
+    if (index < 0) return;
+
+    activeSection = 'guides';
+    modalTitle.textContent = t('Instructions');
+    if (!modal.open) modal.showModal();
+    showGuide(records[index]);
+  } catch {}
+}
+
+const linkedGuide = new URLSearchParams(window.location.search).get('guide');
+
+if (linkedGuide) openLinkedGuide(linkedGuide);

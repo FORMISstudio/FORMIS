@@ -1172,3 +1172,53 @@ html:lang(ru) :is(.nav__item, .tile__title, .modal__title, .card__title, .card__
     width: 100%;
   }
 }
+
+.consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.consent input {
+  appearance: none;
+  display: grid;
+  place-content: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.consent input::after {
+  content: "";
+  width: 10px;
+  height: 5px;
+  margin-top: -2px;
+  border-bottom: 2px solid #000;
+  border-left: 2px solid #000;
+  transform: rotate(-45deg) scale(0);
+  transition: transform 0.2s var(--ease);
+}
+
+.consent input:checked {
+  border-color: var(--text);
+  background: var(--text);
+}
+
+.consent input:checked::after {
+  transform: rotate(-45deg) scale(1);
+}
+
+.consent a {
+  color: var(--text);
+  text-underline-offset: 4px;
+}
