@@ -548,9 +548,97 @@ function createPaidButton(id) {
   return button;
 }
 
+async function sendCert(id, code) {
+  const response = await fetch(config.orderEndpoint, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'cert', order: id, code })
+  });
+  const result = await response.json();
+
+  if (!result.ok) throw new Error('Certificate request failed');
+}
+
+function createCertNote() {
+  return createElement('p', 'modal__note', 'Thank you! We received your certificate and will check it soon.');
+}
+
+function createCertForm(id) {
+  const form = createElement('form', 'form');
+  const input = createInput('input', 'Certificate code', 'Certificate code', 200);
+  const error = createElement('p', 'form__error');
+  const submit = createElement('button', 'form__submit', 'Send certificate');
+
+  form.noValidate = true;
+  submit.type = 'submit';
+  error.setAttribute('role', 'alert');
+  form.append(input, error, submit);
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const code = input.value.trim();
+
+    if (!code) {
+      error.textContent = 'Enter the certificate code.';
+      return;
+    }
+
+    error.textContent = '';
+    submit.disabled = true;
+    submit.textContent = 'Sending…';
+
+    try {
+      await sendCert(id, code);
+      form.replaceWith(createCertNote());
+    } catch {
+      error.textContent = 'Could not send. Try again later.';
+      submit.disabled = false;
+      submit.textContent = 'Send certificate';
+    }
+  });
+
+  return form;
+}
+
+function createPaymentRow(order, method) {
+  if (method === 'card') {
+    return isPaymentLink(order.payment) ? null : createReceiptRow('Card number', order.payment);
+  }
+
+  if (method === 'cert') {
+    const url = safeUrl(order.payment);
+    return createReceiptRow('Certificate shop', url ? url.hostname.replace(/^www\./, '') : order.payment);
+  }
+
+  return createReceiptRow('Data', 'Waiting');
+}
+
+function createPaymentActions(order, method, id) {
+  if (method === 'card') return [createPayAction(order), createPaidButton(id)];
+
+  if (method === 'cert') {
+    const actions = [];
+    const url = isPaymentLink(order.payment) ? safeUrl(order.payment) : null;
+
+    if (url) {
+      const link = createElement('a', 'form__submit form__submit--ghost', 'Get a certificate');
+      link.href = url.href;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      actions.push(link);
+    }
+
+    actions.push(order.certSent ? createCertNote() : createCertForm(id));
+    return actions;
+  }
+
+  return [createElement('p', 'modal__note', 'Payment details will appear here after we confirm your project in the messenger.')];
+}
+
 function createOrderView(order, id) {
   const view = createElement('div', 'receipt');
   const list = createElement('dl', 'receipt__list');
+  const method = order.payment ? order.type : 'non-selected';
 
   list.append(
     createReceiptRow('Client', order.username),
@@ -560,19 +648,106 @@ function createOrderView(order, id) {
 
   if (order.stage) list.append(createReceiptRow('Stage', order.stage));
 
-  if (!order.paid && !isPaymentLink(order.payment)) {
-    list.append(createReceiptRow('Card number', order.payment));
-  }
+  const paymentRow = order.paid ? null : createPaymentRow(order, method);
+
+  if (paymentRow) list.append(paymentRow);
 
   view.append(list);
 
   if (order.paid) {
     view.append(createElement('p', 'modal__note', 'This order is already paid. Thank you!'));
   } else {
-    view.append(createPayAction(order), createPaidButton(id));
+    view.append(...createPaymentActions(order, method, id));
   }
 
   return view;
+}
+
+async function sendCert(id, code) {
+  const response = await fetch(config.orderEndpoint, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'cert', order: id, code })
+  });
+  const result = await response.json();
+
+  if (!result.ok) throw new Error('Certificate request failed');
+}
+
+function createCertNote() {
+  return createElement('p', 'modal__note', 'Thank you! We received your certificate and will check it soon.');
+}
+
+function createCertForm(id) {
+  const form = createElement('form', 'form');
+  const input = createInput('input', 'Certificate code', 'Certificate code', 200);
+  const error = createElement('p', 'form__error');
+  const submit = createElement('button', 'form__submit', 'Send certificate');
+
+  form.noValidate = true;
+  submit.type = 'submit';
+  error.setAttribute('role', 'alert');
+  form.append(input, error, submit);
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const code = input.value.trim();
+
+    if (!code) {
+      error.textContent = 'Enter the certificate code.';
+      return;
+    }
+
+    error.textContent = '';
+    submit.disabled = true;
+    submit.textContent = 'Sending…';
+
+    try {
+      await sendCert(id, code);
+      form.replaceWith(createCertNote());
+    } catch {
+      error.textContent = 'Could not send. Try again later.';
+      submit.disabled = false;
+      submit.textContent = 'Send certificate';
+    }
+  });
+
+  return form;
+}
+
+function createPaymentRow(order, method) {
+  if (method === 'card') {
+    return isPaymentLink(order.payment) ? null : createReceiptRow('Card number', order.payment);
+  }
+
+  if (method === 'cert') {
+    const url = safeUrl(order.payment);
+    return createReceiptRow('Certificate shop', url ? url.hostname.replace(/^www\./, '') : order.payment);
+  }
+
+  return createReceiptRow('Data', 'Waiting');
+}
+
+function createPaymentActions(order, method, id) {
+  if (method === 'card') return [createPayAction(order), createPaidButton(id)];
+
+  if (method === 'cert') {
+    const actions = [];
+    const url = isPaymentLink(order.payment) ? safeUrl(order.payment) : null;
+
+    if (url) {
+      const link = createElement('a', 'form__submit form__submit--ghost', 'Get a certificate');
+      link.href = url.href;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      actions.push(link);
+    }
+
+    actions.push(order.certSent ? createCertNote() : createCertForm(id));
+    return actions;
+  }
+
+  return [createElement('p', 'modal__note', 'Payment details will appear here after we confirm your project in the messenger.')];
 }
 
 function renderPay() {
