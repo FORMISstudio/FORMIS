@@ -1222,3 +1222,59 @@ html:lang(ru) :is(.nav__item, .tile__title, .modal__title, .card__title, .card__
   color: var(--text);
   text-underline-offset: 4px;
 }
+
+.more {
+  display: grid;
+}
+
+.more__toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+
+.more__toggle:hover {
+  color: var(--text);
+}
+
+.more__toggle::after {
+  content: "+";
+  font-size: 18px;
+  line-height: 1;
+  transition: transform 0.4s var(--ease);
+}
+
+.more.is-open .more__toggle::after {
+  transform: rotate(45deg);
+}
+
+.more__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.45s var(--ease);
+}
+
+.more.is-open .more__panel {
+  grid-template-rows: 1fr;
+}
+
+.more__inner {
+  display: grid;
+  gap: 24px;
+  min-height: 0;
+  padding-top: 0;
+  overflow: hidden;
+  transition: padding-top 0.45s var(--ease);
+}
+
+.more.is-open .more__inner {
+  padding-top: 20px;
+}

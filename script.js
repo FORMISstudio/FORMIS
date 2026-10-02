@@ -87,9 +87,10 @@ const uk = {
   "Promo code applied: -{discount}%": "Промокод застосовано: -{discount}%",
   "Promo code not found. The order was created at full price.": "Промокод не знайдено. Замовлення створено за повною ціною.",
   "I agree with the [terms of work]": "Я погоджуюся з [умовами роботи]",
-  "Please accept the terms of work to continue.": "Підтвердьте згоду з умовами роботи, щоб продовжити."
+  "Please accept the terms of work to continue.": "Підтвердьте згоду з умовами роботи, щоб продовжити.",
+  "Add more details": "Додати подробиці"
 };
-
+ 
 const ru = {
   "Order a website": "Заказать сайт",
   "Reviews": "Отзывы",
@@ -164,11 +165,12 @@ const ru = {
   "Promo code applied: -{discount}%": "Промокод применён: -{discount}%",
   "Promo code not found. The order was created at full price.": "Промокод не найден. Заказ создан по полной цене.",
   "I agree with the [terms of work]": "Я согласен(на) с [условиями работы]",
-  "Please accept the terms of work to continue.": "Подтвердите согласие с условиями работы, чтобы продолжить."
+  "Please accept the terms of work to continue.": "Подтвердите согласие с условиями работы, чтобы продолжить.",
+  "Add more details": "Добавить подробности"
 };
-
+ 
 const dictionaries = { uk, ru };
-
+ 
 function readLang() {
   try {
     const saved = localStorage.getItem('lang');
@@ -177,17 +179,17 @@ function readLang() {
   const system = navigator.language.slice(0, 2);
   return ['uk', 'ru'].includes(system) ? system : 'en';
 }
-
+ 
 let lang = readLang();
-
+ 
 function t(text, vars = {}) {
   const base = dictionaries[lang]?.[text] || text;
   return base.replace(/\{(\w+)\}/g, (_, key) => vars[key] ?? '');
 }
-
+ 
 function localize(record) {
   if (lang === 'en') return record;
-
+ 
   const copy = { ...record };
   Object.keys(record)
     .filter((key) => key.endsWith(`_${lang}`) && record[key])
@@ -196,47 +198,47 @@ function localize(record) {
     });
   return copy;
 }
-
+ 
 tiles.forEach((tile) => {
   tile.addEventListener('pointermove', (event) => {
     const rect = tile.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
-
+ 
     tile.style.setProperty('--x', `${x}px`);
     tile.style.setProperty('--y', `${y}px`);
-
+ 
     if (reducedMotion || event.pointerType !== 'mouse') return;
-
+ 
     const offsetX = (x / rect.width - 0.5) * 2;
     const offsetY = (y / rect.height - 0.5) * 2;
-
+ 
     tile.style.setProperty('--ry', `${offsetX * maxTilt}deg`);
     tile.style.setProperty('--rx', `${-offsetY * maxTilt}deg`);
   });
-
+ 
   tile.addEventListener('pointerleave', () => {
     tile.style.setProperty('--rx', '0deg');
     tile.style.setProperty('--ry', '0deg');
   });
 });
-
+ 
 navItems.forEach((item) => {
   const tile = document.querySelector(`[data-tile="${item.dataset.target}"]`);
-
+ 
   item.addEventListener('mouseenter', () => tile.classList.add('is-linked'));
   item.addEventListener('mouseleave', () => tile.classList.remove('is-linked'));
   item.addEventListener('focus', () => tile.classList.add('is-linked'));
   item.addEventListener('blur', () => tile.classList.remove('is-linked'));
 });
-
+ 
 const modal = document.getElementById('modal');
 const modalTitle = document.getElementById('modal-title');
 const modalBody = document.getElementById('modal-body');
 const sheetCache = {};
 let activeSection = null;
 let pendingOrder = '';
-
+ 
 const siteTypes = ['Bio site', 'Other site'];
 const messengers = ['Telegram', 'WhatsApp', 'Viber', 'Instagram', 'Other'];
 const usernameHints = {
@@ -251,7 +253,7 @@ const aboutText = [
   'We take care of the whole path: design, development and launch. You describe the idea, we turn it into a clean and fast website.',
   'Every project is made by hand and adjusted to the person behind it.'
 ];
-
+ 
 const sections = {
   order: { title: 'Order a website', render: renderOrder },
   reviews: { title: 'Reviews', render: renderReviews },
@@ -261,23 +263,23 @@ const sections = {
   pay: { title: 'Pay for an order', render: renderPay },
   guides: { title: 'Instructions', render: renderGuides }
 };
-
+ 
 function createElement(tag, className, text) {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
   return node;
 }
-
+ 
 function parseCsv(text) {
   const rows = [];
   let row = [];
   let cell = '';
   let quoted = false;
-
+ 
   for (let i = 0; i < text.length; i++) {
     const char = text[i];
-
+ 
     if (quoted) {
       if (char === '"' && text[i + 1] === '"') {
         cell += '"';
@@ -302,32 +304,32 @@ function parseCsv(text) {
       cell += char;
     }
   }
-
+ 
   if (cell || row.length) {
     row.push(cell);
     rows.push(row);
   }
-
+ 
   return rows;
 }
-
+ 
 async function loadSheet(name) {
   if (sheetCache[name]) return sheetCache[name].map(localize);
-
+ 
   const url = `https://docs.google.com/spreadsheets/d/${config.sheets[name]}/gviz/tq?tqx=out:csv`;
   const response = await fetch(url);
   if (!response.ok) throw new Error('Sheet request failed');
-
+ 
   const [headers, ...rows] = parseCsv(await response.text());
   const keys = headers.map((header) => header.trim().toLowerCase());
-
+ 
   sheetCache[name] = rows
     .map((row) => Object.fromEntries(keys.map((key, index) => [key, (row[index] || '').trim()])))
     .filter((record) => Object.values(record).some(Boolean));
-
+ 
   return sheetCache[name].map(localize);
 }
-
+ 
 function safeUrl(value) {
   try {
     const url = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`);
@@ -336,24 +338,24 @@ function safeUrl(value) {
     return null;
   }
 }
-
+ 
 function createCards(records, buildCard, emptyText) {
   if (!records.length) return createElement('p', 'modal__note', emptyText);
-
+ 
   const list = createElement('div', 'cards');
   records.forEach((record) => list.append(buildCard(record)));
   return list;
 }
-
+ 
 function renderAbout() {
   const text = createElement('div', 'modal__text');
   aboutText.forEach((paragraph) => text.append(createElement('p', '', t(paragraph))));
   return text;
 }
-
+ 
 async function renderPricing() {
   const records = await loadSheet('pricing');
-
+ 
   return createCards(records, (item) => {
     const card = createElement('article', 'card');
     card.append(
@@ -364,19 +366,19 @@ async function renderPricing() {
     return card;
   }, t('Prices will appear here soon.'));
 }
-
+ 
 async function renderReviews() {
   const records = await loadSheet('reviews');
-
+ 
   return createCards(records, (item) => {
     const card = createElement('article', 'card');
     const url = safeUrl(item.link);
-
+ 
     card.append(
       createElement('h3', 'card__title', item.username),
       createElement('p', 'card__text', item.review)
     );
-
+ 
     if (url) {
       const link = createElement('a', 'card__link', url.hostname.replace(/^www\./, ''));
       link.href = url.href;
@@ -384,36 +386,36 @@ async function renderReviews() {
       link.rel = 'noopener noreferrer';
       card.append(link);
     }
-
+ 
     return card;
   }, t('Reviews will appear here soon.'));
 }
-
+ 
 async function renderWork() {
   const records = await loadSheet('works');
-
+ 
   return createCards(records, (item) => {
     const url = safeUrl(item.link);
     const card = createElement(url ? 'a' : 'article', 'card');
-
+ 
     if (url) {
       card.href = url.href;
       card.target = '_blank';
       card.rel = 'noopener noreferrer';
     }
-
+ 
     card.append(
       createElement('h3', 'card__title', item.title || url?.hostname.replace(/^www\./, '')),
       createElement('p', 'card__link', url ? url.hostname.replace(/^www\./, '') : '')
     );
-
+ 
     return card;
   }, t('Our work will appear here soon.'));
 }
-
+ 
 async function renderGuides() {
   const records = await loadSheet('guides');
-
+ 
   return createCards(records, (item) => {
     const card = createElement('button', 'card card--button');
     card.type = 'button';
@@ -425,34 +427,34 @@ async function renderGuides() {
     return card;
   }, t('Instructions will appear here soon.'));
 }
-
+ 
 function showGuide(item) {
   const article = createElement('article', 'guide');
   const back = createElement('button', 'guide__back', t('← All instructions'));
   const text = createElement('div', 'modal__text');
-
+ 
   back.type = 'button';
   back.addEventListener('click', () => openSection('guides'));
-
+ 
   item.text.split(/\n+/).forEach((line) => text.append(createElement('p', '', line)));
   article.append(back, createElement('h3', 'guide__title', item.title), text);
-
+ 
   modalBody.replaceChildren(article);
   modalBody.scrollTop = 0;
 }
-
+ 
 function createChoice(options, onChange) {
   const group = createElement('div', 'choice');
   let value = '';
-
+ 
   group.setAttribute('role', 'radiogroup');
-
+ 
   options.forEach((option) => {
     const button = createElement('button', 'choice__item', option);
     button.type = 'button';
     button.setAttribute('role', 'radio');
     button.setAttribute('aria-checked', 'false');
-
+ 
     button.addEventListener('click', () => {
       value = option;
       group.querySelectorAll('.choice__item').forEach((item) => {
@@ -460,10 +462,10 @@ function createChoice(options, onChange) {
       });
       onChange(option);
     });
-
+ 
     group.append(button);
   });
-
+ 
   return {
     node: group,
     get value() {
@@ -471,25 +473,25 @@ function createChoice(options, onChange) {
     }
   };
 }
-
+ 
 function createInput(tag, placeholder, label, maxLength) {
   const input = createElement(tag, 'input');
   input.placeholder = placeholder;
   input.maxLength = maxLength;
   input.setAttribute('aria-label', label);
-
+ 
   if (tag === 'textarea') input.rows = 4;
   else input.type = 'text';
-
+ 
   return input;
 }
-
+ 
 function createField(label, control) {
   const field = createElement('div', 'field');
   field.append(createElement('span', 'field__label', label), control);
   return field;
 }
-
+ 
 function createSuccess(messenger, code) {
   const success = createElement('div', 'success');
   success.append(
@@ -499,39 +501,61 @@ function createSuccess(messenger, code) {
   );
   return success;
 }
-
+ 
 async function sendOrder(data) {
   const response = await fetch(config.orderEndpoint, {
     method: 'POST',
     body: JSON.stringify(data)
   });
   const result = await response.json();
-
+ 
   if (!result.ok) throw new Error('Order request failed');
   return result;
 }
-
+ 
+function createMore(fields) {
+  const node = createElement('div', 'more');
+  const toggle = createElement('button', 'more__toggle', t('Add more details'));
+  const panel = createElement('div', 'more__panel');
+  const inner = createElement('div', 'more__inner');
+ 
+  toggle.type = 'button';
+  toggle.setAttribute('aria-expanded', 'false');
+  panel.inert = true;
+  inner.append(...fields);
+  panel.append(inner);
+  node.append(toggle, panel);
+ 
+  toggle.addEventListener('click', () => {
+    const open = node.classList.toggle('is-open');
+    toggle.setAttribute('aria-expanded', String(open));
+    panel.inert = !open;
+  });
+ 
+  return node;
+}
+ 
 function createConsent() {
   const node = createElement('label', 'consent');
   const box = createElement('input');
   const text = createElement('span');
   const [before, linkText, after] = t('I agree with the [terms of work]').split(/[\[\]]/);
   const link = createElement('a', '', linkText);
-
+ 
   box.type = 'checkbox';
   link.href = '?guide=terms-of-work';
   link.target = '_blank';
   link.rel = 'noopener noreferrer';
   text.append(before, link, after);
   node.append(box, text);
-
+ 
   return { node, box };
 }
-
+ 
 function renderOrder() {
   const form = createElement('form', 'form');
   form.noValidate = true;
-
+ 
   const siteType = createChoice(siteTypes, () => {});
   const username = createInput('input', t('Choose a messenger first'), 'Username', 64);
   const messenger = createChoice(messengers, (value) => {
@@ -542,38 +566,41 @@ function renderOrder() {
   const deadline = createInput('input', t('Desired deadline (optional)'), t('Deadline'), 64);
   const example = createInput('input', t('Link to a site you like (optional)'), t('Example'), 200);
   const promo = createInput('input', t('Promo code (optional)'), t('Promo code'), 32);
+  const more = createMore([
+    createField(t('Deadline'), deadline),
+    createField(t('Example'), example),
+    createField(t('Promo code'), promo)
+  ]);
   const consent = createConsent();
   const trap = createElement('input', 'form__trap');
   const error = createElement('p', 'form__error');
   const submit = createElement('button', 'form__submit', t('Send request'));
   const hint = createElement('p', 'form__hint', t('After you send the form, we will contact you in the messenger you chose. It will not be instant, but we always reply.'));
-
+ 
   trap.type = 'text';
   trap.tabIndex = -1;
   trap.autocomplete = 'off';
   trap.setAttribute('aria-hidden', 'true');
   error.setAttribute('role', 'alert');
   submit.type = 'submit';
-
+ 
   form.append(
     createField(t('Website type'), siteType.node),
     createField(t('Messenger'), messenger.node),
     createField(t('Your username'), username),
     createField(t('Description'), description),
-    createField(t('Deadline'), deadline),
-    createField(t('Example'), example),
     createField(t('Note'), note),
-    createField(t('Promo code'), promo),
+    more,
     consent.node,
     trap,
     error,
     submit,
     hint
   );
-
+ 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
-
+ 
     const data = {
       siteType: siteType.value,
       messenger: messenger.value,
@@ -585,33 +612,33 @@ function renderOrder() {
       promo: promo.value.trim(),
       website: trap.value
     };
-
+ 
     if (!data.siteType || !data.messenger || !data.username || !data.description) {
       error.textContent = t('Please choose a website type and messenger, then fill in your username and description.');
       return;
     }
-
+ 
     if (!consent.box.checked) {
       error.textContent = t('Please accept the terms of work to continue.');
       return;
     }
-
+ 
     error.textContent = '';
     submit.disabled = true;
     submit.textContent = t('Sending…');
-
+ 
     try {
       const { code, promo: promoStatus, discount } = await sendOrder(data);
       const view = createSuccess(data.messenger, code);
-
+ 
       if (promoStatus === 'applied') {
         view.append(createElement('p', 'card__text', t('Promo code applied: -{discount}%', { discount })));
       }
-
+ 
       if (promoStatus === 'invalid') {
         view.append(createElement('p', 'form__error', t('Promo code not found. The order was created at full price.')));
       }
-
+ 
       modalBody.replaceChildren(view);
     } catch {
       error.textContent = t('Could not send the form. Check your connection and try again.');
@@ -619,39 +646,39 @@ function renderOrder() {
       submit.textContent = t('Send request');
     }
   });
-
+ 
   return form;
 }
-
+ 
 async function findOrder(id) {
   const response = await fetch(`${config.orderEndpoint}?order=${encodeURIComponent(id)}`);
   if (!response.ok) throw new Error('Order request failed');
   return response.json();
 }
-
+ 
 function isPaymentLink(payment) {
   return /^https?:\/\//i.test(payment);
 }
-
+ 
 function createStatus(paid) {
   return createElement('span', `status ${paid ? 'status--paid' : 'status--unpaid'}`, paid ? t('Paid') : t('Not paid'));
 }
-
+ 
 function createReceiptRow(label, value) {
   const row = createElement('div', 'receipt__row');
   const term = createElement('dt', 'receipt__label', label);
   const details = createElement('dd', 'receipt__value');
-
+ 
   if (value instanceof Node) details.append(value);
   else details.textContent = value;
-
+ 
   row.append(term, details);
   return row;
 }
-
+ 
 function createPayAction(order) {
   const url = isPaymentLink(order.payment) ? safeUrl(order.payment) : null;
-
+ 
   if (url) {
     const link = createElement('a', 'form__submit', t('Go to payment'));
     link.href = url.href;
@@ -659,10 +686,10 @@ function createPayAction(order) {
     link.rel = 'noopener noreferrer';
     return link;
   }
-
+ 
   const button = createElement('button', 'form__submit', t('Copy card number'));
   button.type = 'button';
-
+ 
   button.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(order.payment);
@@ -670,32 +697,32 @@ function createPayAction(order) {
     } catch {
       button.textContent = t('Copy failed, select the number manually');
     }
-
+ 
     setTimeout(() => {
       button.textContent = t('Copy card number');
     }, 2000);
   });
-
+ 
   return button;
 }
-
+ 
 async function sendPaid(id) {
   const response = await fetch(config.orderEndpoint, {
     method: 'POST',
     body: JSON.stringify({ action: 'paid', order: id })
   });
   const result = await response.json();
-
+ 
   if (!result.ok) throw new Error('Paid request failed');
 }
-
+ 
 function createPaidButton(id) {
   const button = createElement('button', 'form__submit form__submit--ghost', t('I have paid'));
   button.type = 'button';
-
+ 
   button.addEventListener('click', async () => {
     button.disabled = true;
-
+ 
     try {
       await sendPaid(id);
       button.textContent = t('Thank you! We will check the payment soon.');
@@ -704,95 +731,95 @@ function createPaidButton(id) {
       button.disabled = false;
     }
   });
-
+ 
   return button;
 }
-
+ 
 function createOrderView(order, id) {
   const view = createElement('div', 'receipt');
   const list = createElement('dl', 'receipt__list');
-
+ 
   list.append(
     createReceiptRow(t('Client'), order.username),
     createReceiptRow(t('Amount to pay'), order.amount),
     createReceiptRow(t('Status'), createStatus(order.paid))
   );
-
+ 
   if (order.stage) list.append(createReceiptRow(t('Stage'), order.stage));
-
+ 
   if (!order.paid && !isPaymentLink(order.payment)) {
     list.append(createReceiptRow(t('Card number'), order.payment));
   }
-
+ 
   view.append(list);
-
+ 
   if (order.paid) {
     view.append(createElement('p', 'modal__note', t('This order is already paid. Thank you!')));
   } else {
     view.append(createPayAction(order), createPaidButton(id));
   }
-
+ 
   return view;
 }
-
+ 
 function renderPay() {
   const form = createElement('form', 'form');
   const input = createInput('input', t('For example, 12345'), t('Order number'), 32);
   const error = createElement('p', 'form__error');
   const submit = createElement('button', 'form__submit', t('Find order'));
   const result = createElement('div', 'pay__result');
-
+ 
   form.noValidate = true;
   submit.type = 'submit';
   error.setAttribute('role', 'alert');
-
+ 
   form.append(createField(t('Order number'), input), error, submit, result);
-
+ 
   if (pendingOrder) {
     input.value = pendingOrder;
     pendingOrder = '';
     setTimeout(() => form.requestSubmit(), 0);
   }
-
+ 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
-
+ 
     const id = input.value.trim();
-
+ 
     if (!id) {
       error.textContent = t('Enter your order number.');
       return;
     }
-
+ 
     error.textContent = '';
     result.replaceChildren();
     submit.disabled = true;
     submit.textContent = t('Searching…');
-
+ 
     try {
       const order = await findOrder(id);
-
+ 
       if (order.found) result.replaceChildren(createOrderView(order, id));
       else error.textContent = t('Order not found. Check the number and try again.');
     } catch {
       error.textContent = t('Could not load the order. Please try again later.');
     }
-
+ 
     submit.disabled = false;
     submit.textContent = t('Find order');
   });
-
+ 
   return form;
 }
-
+ 
 async function openSection(name) {
   const section = sections[name];
   activeSection = name;
-
+ 
   modalTitle.textContent = t(section.title);
   modalBody.replaceChildren(createSkeleton());
   if (!modal.open) modal.showModal();
-
+ 
   try {
     const content = await section.render();
     if (activeSection === name) modalBody.replaceChildren(content);
@@ -802,23 +829,23 @@ async function openSection(name) {
     }
   }
 }
-
+ 
 function closeModal() {
   if (modal.classList.contains('is-closing')) return;
-
+ 
   activeSection = null;
   modal.classList.add('is-closing');
-
+ 
   setTimeout(() => {
     modal.classList.remove('is-closing');
     modal.close();
   }, 200);
 }
-
+ 
 document.querySelectorAll('[data-tile], [data-target]').forEach((trigger) => {
   trigger.addEventListener('click', () => openSection(trigger.dataset.tile || trigger.dataset.target));
 });
-
+ 
 document.querySelectorAll('.pay').forEach((button) => {
   button.addEventListener('pointermove', (event) => {
     const rect = button.getBoundingClientRect();
@@ -826,29 +853,29 @@ document.querySelectorAll('.pay').forEach((button) => {
     button.style.setProperty('--y', `${event.clientY - rect.top}px`);
   });
 });
-
+ 
 modal.querySelector('.modal__close').addEventListener('click', closeModal);
-
+ 
 modal.addEventListener('click', (event) => {
   if (event.target === modal) closeModal();
 });
-
+ 
 modal.addEventListener('cancel', (event) => {
   event.preventDefault();
   closeModal();
 });
-
+ 
 const langGroup = document.querySelector('.lang');
 const langButtons = langGroup.querySelectorAll('[data-lang]');
 const langOrder = ['en', 'uk', 'ru'];
-
+ 
 function applyStatic(animate = false) {
   document.documentElement.lang = lang;
-
+ 
   document.querySelectorAll('.nav__item, .tile__title, .tile__text, .pay__title, .pay__text').forEach((node, index) => {
     node.dataset.en ||= node.textContent;
     node.textContent = t(node.dataset.en);
-
+ 
     if (animate && !reducedMotion) {
       node.animate(
         [
@@ -859,78 +886,78 @@ function applyStatic(animate = false) {
       );
     }
   });
-
+ 
   langGroup.style.setProperty('--i', langOrder.indexOf(lang));
-
+ 
   langButtons.forEach((button) => {
     button.setAttribute('aria-pressed', String(button.dataset.lang === lang));
   });
 }
-
+ 
 langButtons.forEach((button) => {
   button.addEventListener('click', () => {
     if (button.dataset.lang === lang) return;
-
+ 
     lang = button.dataset.lang;
-
+ 
     try {
       localStorage.setItem('lang', lang);
     } catch {}
-
+ 
     applyStatic(true);
     updateBadge();
     if (modal.open && activeSection) openSection(activeSection);
   });
 });
-
+ 
 applyStatic();
-
+ 
 function createSkeleton() {
   const list = createElement('div', 'skeleton');
   for (let i = 0; i < 3; i++) list.append(createElement('div', 'skeleton__card'));
   return list;
 }
-
+ 
 async function updateBadge() {
   const host = document.querySelector('.tile--order');
-
+ 
   try {
     const [record] = await loadSheet('status');
     host.querySelector('.badge')?.remove();
     if (!record || !record.text) return;
-
+ 
     const isOpen = record.state.toLowerCase() === 'open';
     host.prepend(createElement('span', isOpen ? 'badge' : 'badge badge--busy', record.text));
   } catch {}
 }
-
+ 
 updateBadge();
-
+ 
 const linkedOrder = new URLSearchParams(window.location.search).get('order');
-
+ 
 if (linkedOrder) {
   pendingOrder = linkedOrder;
   openSection('pay');
 }
-
+ 
 function slugify(value) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
-
+ 
 async function openLinkedGuide(slug) {
   try {
     const records = await loadSheet('guides');
     const index = sheetCache.guides.findIndex((item) => slugify(item.title) === slug);
-
+ 
     if (index < 0) return;
-
+ 
     activeSection = 'guides';
     modalTitle.textContent = t('Instructions');
     if (!modal.open) modal.showModal();
     showGuide(records[index]);
   } catch {}
 }
-
+ 
 const linkedGuide = new URLSearchParams(window.location.search).get('guide');
-
+ 
 if (linkedGuide) openLinkedGuide(linkedGuide);
