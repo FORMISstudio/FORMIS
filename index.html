@@ -6,10 +6,16 @@
   <meta name="theme-color" content="#050505">
   <title>FORMIS</title>
   <meta name="description" content="FORMIS is a design and web development studio. We build websites for businesses.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="FORMIS — design &amp; webdev">
+  <meta property="og:description" content="We design and build websites for people and businesses.">
+  <meta property="og:url" content="https://formis.space">
+  <meta property="og:image" content="https://formis.space/logo.png">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="favicon.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cal+Sans&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cal+Sans&family=Manrope:wght@400;500;600&family=Onest:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -24,6 +30,11 @@
       <button class="nav__item" type="button" data-target="about">About us</button>
       <button class="nav__item" type="button" data-target="pricing">Pricing</button>
     </nav>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en">EN</button>
+      <button type="button" data-lang="uk">UA</button>
+      <button type="button" data-lang="ru">RU</button>
+    </div>
   </header>
 
   <main class="board">
@@ -79,6 +90,9 @@
 
   <footer class="footer">
     <a class="footer__mail" href="mailto:formisworkk@gmail.com">formisworkk@gmail.com</a>
+    <nav class="footer__links" aria-label="Contacts">
+      <a href="https://t.me/xiyyxs" target="_blank" rel="noopener noreferrer">Telegram</a>
+    </nav>
     <img class="footer__logo" src="logo.png" alt="FORMIS">
   </footer>
 
