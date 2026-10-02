@@ -8,7 +8,7 @@
   <link rel="icon" href="/favicon.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cal+Sans&family=Manrope:wght@400;500;600&family=Onest:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cal+Sans&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -29,23 +29,5 @@
     <a class="footer__mail" href="mailto:formisworkk@gmail.com">formisworkk@gmail.com</a>
   </footer>
 
-  <script>
-    const texts = {
-      en: ['Page not found', 'The page you are looking for does not exist or has been moved.', 'Back to home'],
-      uk: ['Сторінку не знайдено', 'Сторінки, яку ви шукаєте, не існує або її переміщено.', 'На головну'],
-      ru: ['Страница не найдена', 'Страницы, которую вы ищете, не существует или она перемещена.', 'На главную']
-    };
-    let lang = 'en';
-
-    try {
-      lang = localStorage.getItem('lang') || (navigator.language.slice(0, 2) in texts ? navigator.language.slice(0, 2) : 'en');
-    } catch {}
-
-    const [title, text, button] = texts[lang] || texts.en;
-    document.documentElement.lang = lang;
-    document.querySelector('.notfound__title').textContent = title;
-    document.querySelector('.notfound__text').textContent = text;
-    document.querySelector('.notfound__button').textContent = button;
-  </script>
 </body>
 </html>

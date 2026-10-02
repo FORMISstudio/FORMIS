@@ -984,59 +984,6 @@ a.form__submit {
   margin-left: auto;
 }
 
-.lang {
-  --i: 0;
-  position: relative;
-  display: flex;
-  gap: 2px;
-  margin-left: 12px;
-  padding: 3px;
-  border: 1px solid var(--line-strong);
-  border-radius: 999px;
-}
-
-.lang::before {
-  content: "";
-  position: absolute;
-  top: 3px;
-  bottom: 3px;
-  left: 3px;
-  width: 42px;
-  border-radius: 999px;
-  background: var(--text);
-  transform: translateX(calc(var(--i) * 44px));
-  transition: transform 0.5s var(--ease);
-}
-
-.lang button {
-  position: relative;
-  width: 42px;
-  padding: 6px 0;
-  border: 0;
-  background: none;
-  font-family: var(--font-display);
-  font-size: 13px;
-  color: var(--muted);
-  transition: color 0.35s;
-}
-
-.lang button:hover {
-  color: var(--text);
-}
-
-.lang button[aria-pressed="true"] {
-  color: #000;
-}
-
-html:lang(uk),
-html:lang(ru) {
-  --font-display: "Onest", "Manrope", system-ui, sans-serif;
-}
-
-html:lang(uk) :is(.nav__item, .tile__title, .modal__title, .card__title, .card__price, .form__submit, .receipt__value, .guide__title, .pay__title, .lang button),
-html:lang(ru) :is(.nav__item, .tile__title, .modal__title, .card__title, .card__price, .form__submit, .receipt__value, .guide__title, .pay__title, .lang button) {
-  font-weight: 600;
-}
 
 .form__submit--ghost {
   border: 1px solid var(--line-strong);
@@ -1044,40 +991,6 @@ html:lang(ru) :is(.nav__item, .tile__title, .modal__title, .card__title, .card__
   color: var(--text);
 }
 
-@media (max-width: 960px) {
-  .lang {
-    margin-left: auto;
-  }
-}
-
-.badge {
-  position: absolute;
-  top: 36px;
-  left: 40px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px 6px 10px;
-  border: 1px solid var(--line-strong);
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #c4c4c4;
-}
-
-.badge::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #6fdc8c;
-  animation: pulse 2.4s ease-in-out infinite;
-}
-
-.badge--busy::before {
-  background: #f0b35a;
-  animation: none;
-}
 
 .skeleton {
   display: grid;
@@ -1152,9 +1065,6 @@ html:lang(ru) :is(.nav__item, .tile__title, .modal__title, .card__title, .card__
   padding: 14px 32px;
 }
 
-@keyframes pulse {
-  50% { opacity: 0.35; }
-}
 
 @keyframes shimmer {
   from { background-position: 100% 0; }
@@ -1162,10 +1072,6 @@ html:lang(ru) :is(.nav__item, .tile__title, .modal__title, .card__title, .card__
 }
 
 @media (max-width: 560px) {
-  .badge {
-    top: 24px;
-    left: 26px;
-  }
 
   .footer__links {
     order: 3;
