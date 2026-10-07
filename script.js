@@ -66,6 +66,8 @@ const aboutText = [
   'FORMIS is a design and web development studio. We build websites for people and businesses, from one-page bio sites to full projects.',
   'We take care of the whole path: design, development and launch. You describe the idea, we turn it into a clean and fast website.',
   'Every project is made by hand and adjusted to the person behind it.'
+  ''
+  'Credits: xiyyxs, kionylixe'
 ];
 
 const sections = {
