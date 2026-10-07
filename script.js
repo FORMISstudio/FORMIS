@@ -9,10 +9,11 @@ const config = {
     works: '1PIGR6IhORhHIA7xJDAPFZv8IKL6ys94xYM1reEirn9g',
     guides: '1CqmaXEMdm8mryOhGViVcjk4DUFRIC-GZLaeZw9gxOnk'
   },
-  orderEndpoint: 'https://script.google.com/macros/s/AKfycbwT317xHa5NF9fqSABOFfmMmb1ofQPxHUdxTRcMofQySKvo42D85aOHg_hC_CGdmFcamQ/exec'
+  orderEndpoint: 'https://script.google.com/macros/s/AKfycbwT317xHa5NF9fqSABOFfmMmb1ofQPxHUdxTRcMofQySKvo42D85aOHg_hC_CGdmFcamQ/exec',
+  assistantEndpoint: 'https://formisai.formisworkk.workers.dev/'
 };
 
-tiles.forEach((tile) => {
+tiles.forEach((tile) => { 
   tile.addEventListener('pointermove', (event) => {
     const rect = tile.getBoundingClientRect();
     const x = event.clientX - rect.left;
@@ -984,3 +985,169 @@ function renderContact() {
   wrapper.append(createTicketForm(), createElement('div', 'contact__divider', 'or'), createTicketLookup());
   return wrapper;
 }
+
+const assistant = document.getElementById('assistant');
+const assistantToggle = document.querySelector('.assistant-toggle');
+const assistantMessages = document.getElementById('assistant-messages');
+const assistantForm = document.getElementById('assistant-form');
+const assistantInput = assistantForm.querySelector('input');
+const assistantSend = assistantForm.querySelector('button');
+const assistantHistory = [];
+const quickQuestions = ['How do I order a website?', 'How do I pay?', 'What does it cost?'];
+let assistantStarted = false;
+let assistantBusy = false;
+let hintTimer;
+
+function clearHints() {
+  clearTimeout(hintTimer);
+  document.querySelectorAll('.is-hinted').forEach((node) => node.classList.remove('is-hinted'));
+}
+
+function highlightTargets(ids) {
+  clearHints();
+
+  ids.forEach((id) => {
+    document.querySelectorAll(`[data-tile="${id}"], [data-target="${id}"]`).forEach((node) => node.classList.add('is-hinted'));
+  });
+
+  document.querySelector(`[data-tile="${ids[0]}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  hintTimer = setTimeout(clearHints, 8000);
+}
+
+document.addEventListener('click', (event) => {
+  if (event.target.closest('.is-hinted')) clearHints();
+});
+
+async function askAssistant(messages) {
+  const response = await fetch(config.assistantEndpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages })
+  });
+
+  if (!response.ok) throw new Error('Assistant request failed');
+
+  const data = await response.json();
+  const text = [data.reply, data.text, data.message, data.choices?.[0]?.message?.content].find((value) => typeof value === 'string');
+
+  if (!text) throw new Error('Empty reply');
+  return text;
+}
+
+function parseReply(raw) {
+  const ids = [...raw.matchAll(/\[\[show:([a-z]+)\]\]/g)].map((match) => match[1]);
+
+  return {
+    text: raw.replace(/\[\[show:[a-z]+\]\]/g, '').trim(),
+    targets: [...new Set(ids)].filter((id) => sections[id]).slice(0, 2)
+  };
+}
+
+function addMessage(role, text, targets = []) {
+  const message = createElement('div', `assistant__msg assistant__msg--${role}`);
+  message.append(createElement('p', '', text));
+
+  if (targets.length) {
+    const chips = createElement('div', 'assistant__chips');
+
+    targets.forEach((id) => {
+      const chip = createElement('button', 'assistant__chip', `Show: ${sections[id].title}`);
+      chip.type = 'button';
+
+      chip.addEventListener('click', () => {
+        highlightTargets([id]);
+        if (window.matchMedia('(max-width: 960px)').matches) setAssistantOpen(false);
+      });
+
+      chips.append(chip);
+    });
+
+    message.append(chips);
+  }
+
+  assistantMessages.append(message);
+  assistantMessages.scrollTop = assistantMessages.scrollHeight;
+  return message;
+}
+
+function addTyping() {
+  const typing = createElement('div', 'assistant__msg assistant__msg--assistant assistant__msg--typing');
+  typing.append(createElement('span'), createElement('span'), createElement('span'));
+  assistantMessages.append(typing);
+  assistantMessages.scrollTop = assistantMessages.scrollHeight;
+  return typing;
+}
+
+async function sendAssistantMessage(text) {
+  if (assistantBusy || !text) return;
+
+  assistantBusy = true;
+  assistantSend.disabled = true;
+  assistantMessages.querySelector('.assistant__chips:not(.assistant__msg .assistant__chips)')?.remove();
+
+  addMessage('user', text);
+  assistantHistory.push({ role: 'user', content: text });
+
+  const typing = addTyping();
+
+  try {
+    const { text: reply, targets } = parseReply(await askAssistant(assistantHistory.slice(-10)));
+
+    typing.remove();
+    assistantHistory.push({ role: 'assistant', content: reply });
+    addMessage('assistant', reply, targets);
+
+    if (targets.length && window.matchMedia('(min-width: 961px)').matches) highlightTargets(targets);
+  } catch {
+    typing.remove();
+    assistantHistory.pop();
+    addMessage('assistant', 'The assistant is unavailable right now. Please try again later or use Contact us.');
+  } finally {
+    assistantBusy = false;
+    assistantSend.disabled = false;
+  }
+}
+
+function startAssistant() {
+  assistantStarted = true;
+  addMessage('assistant', 'Hi! I can help you order a website, find prices or answer questions about FORMIS.');
+
+  const chips = createElement('div', 'assistant__chips');
+
+  quickQuestions.forEach((question) => {
+    const chip = createElement('button', 'assistant__chip', question);
+    chip.type = 'button';
+    chip.addEventListener('click', () => sendAssistantMessage(question));
+    chips.append(chip);
+  });
+
+  assistantMessages.append(chips);
+}
+
+function setAssistantOpen(open) {
+  assistant.classList.toggle('is-open', open);
+  assistant.inert = !open;
+  assistantToggle.setAttribute('aria-expanded', String(open));
+
+  if (!open) return;
+
+  if (!assistantStarted) startAssistant();
+  if (window.matchMedia('(hover: hover)').matches) assistantInput.focus();
+}
+
+assistantToggle.addEventListener('click', () => setAssistantOpen(!assistant.classList.contains('is-open')));
+assistant.querySelector('.assistant__close').addEventListener('click', () => setAssistantOpen(false));
+
+assistantForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+
+  const text = assistantInput.value.trim();
+  assistantInput.value = '';
+  sendAssistantMessage(text);
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && assistant.classList.contains('is-open') && !modal.open) setAssistantOpen(false);
+});
+
+assistant.inert = true;
