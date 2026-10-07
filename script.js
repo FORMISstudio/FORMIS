@@ -74,7 +74,8 @@ const sections = {
   about: { title: 'About us', render: renderAbout },
   pricing: { title: 'Pricing', render: renderPricing },
   pay: { title: 'Pay for an order', render: renderPay },
-  guides: { title: 'Instructions', render: renderGuides }
+  guides: { title: 'Instructions', render: renderGuides },
+  contact: { title: 'Contact us', render: renderContact }
 };
 
 function createElement(tag, className, text) {
@@ -638,7 +639,6 @@ function createPaymentActions(order, method, id) {
 function createOrderView(order, id) {
   const view = createElement('div', 'receipt');
   const list = createElement('dl', 'receipt__list');
-  const method = order.payment ? order.type : 'non-selected';
 
   list.append(
     createReceiptRow('Client', order.username),
@@ -648,6 +648,7 @@ function createOrderView(order, id) {
 
   if (order.stage) list.append(createReceiptRow('Stage', order.stage));
 
+  const method = order.payment ? order.type : 'non-selected';
   const paymentRow = order.paid ? null : createPaymentRow(order, method);
 
   if (paymentRow) list.append(paymentRow);
@@ -661,93 +662,6 @@ function createOrderView(order, id) {
   }
 
   return view;
-}
-
-async function sendCert(id, code) {
-  const response = await fetch(config.orderEndpoint, {
-    method: 'POST',
-    body: JSON.stringify({ action: 'cert', order: id, code })
-  });
-  const result = await response.json();
-
-  if (!result.ok) throw new Error('Certificate request failed');
-}
-
-function createCertNote() {
-  return createElement('p', 'modal__note', 'Thank you! We received your certificate and will check it soon.');
-}
-
-function createCertForm(id) {
-  const form = createElement('form', 'form');
-  const input = createInput('input', 'Certificate code', 'Certificate code', 200);
-  const error = createElement('p', 'form__error');
-  const submit = createElement('button', 'form__submit', 'Send certificate');
-
-  form.noValidate = true;
-  submit.type = 'submit';
-  error.setAttribute('role', 'alert');
-  form.append(input, error, submit);
-
-  form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-
-    const code = input.value.trim();
-
-    if (!code) {
-      error.textContent = 'Enter the certificate code.';
-      return;
-    }
-
-    error.textContent = '';
-    submit.disabled = true;
-    submit.textContent = 'Sending…';
-
-    try {
-      await sendCert(id, code);
-      form.replaceWith(createCertNote());
-    } catch {
-      error.textContent = 'Could not send. Try again later.';
-      submit.disabled = false;
-      submit.textContent = 'Send certificate';
-    }
-  });
-
-  return form;
-}
-
-function createPaymentRow(order, method) {
-  if (method === 'card') {
-    return isPaymentLink(order.payment) ? null : createReceiptRow('Card number', order.payment);
-  }
-
-  if (method === 'cert') {
-    const url = safeUrl(order.payment);
-    return createReceiptRow('Certificate shop', url ? url.hostname.replace(/^www\./, '') : order.payment);
-  }
-
-  return createReceiptRow('Data', 'Waiting');
-}
-
-function createPaymentActions(order, method, id) {
-  if (method === 'card') return [createPayAction(order), createPaidButton(id)];
-
-  if (method === 'cert') {
-    const actions = [];
-    const url = isPaymentLink(order.payment) ? safeUrl(order.payment) : null;
-
-    if (url) {
-      const link = createElement('a', 'form__submit form__submit--ghost', 'Get a certificate');
-      link.href = url.href;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      actions.push(link);
-    }
-
-    actions.push(order.certSent ? createCertNote() : createCertForm(id));
-    return actions;
-  }
-
-  return [createElement('p', 'modal__note', 'Payment details will appear here after we confirm your project in the messenger.')];
 }
 
 function renderPay() {
@@ -887,3 +801,186 @@ async function openLinkedGuide(slug) {
 const linkedGuide = new URLSearchParams(window.location.search).get('guide');
 
 if (linkedGuide) openLinkedGuide(linkedGuide);
+
+const ticketTypes = ['Order question', 'Payment', 'Technical issue', 'Other'];
+const ticketDigits = 4;
+
+async function sendTicket(data) {
+  const response = await fetch(config.orderEndpoint, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'ticket', ...data })
+  });
+  const result = await response.json();
+
+  if (!result.ok) throw new Error('Ticket request failed');
+  return result;
+}
+
+async function findTicket(id) {
+  const response = await fetch(`${config.orderEndpoint}?ticket=${encodeURIComponent(id)}`);
+  if (!response.ok) throw new Error('Ticket request failed');
+  return response.json();
+}
+
+function createBubble(author, text, className) {
+  const bubble = createElement('div', `bubble ${className}`);
+  bubble.append(createElement('span', 'bubble__author', author), createElement('p', 'bubble__text', text));
+  return bubble;
+}
+
+function showChat(ticket) {
+  const chat = createElement('div', 'chat');
+  const back = createElement('button', 'guide__back', '← Back');
+  const head = createElement('div', 'chat__head');
+  const messages = createElement('div', 'chat__messages');
+
+  back.type = 'button';
+  back.addEventListener('click', () => openSection('contact'));
+
+  head.append(
+    createElement('h3', 'guide__title', `Ticket ${ticket.ticket}`),
+    createElement('p', 'card__text', [ticket.type, ticket.created].filter(Boolean).join(' · '))
+  );
+
+  messages.append(createBubble('You', ticket.message, 'bubble--client'));
+
+  if (ticket.reply) {
+    messages.append(createBubble('FORMIS', ticket.reply, 'bubble--team'));
+  } else {
+    messages.append(createElement('p', 'chat__wait', 'No reply yet. We will answer here, check again a bit later.'));
+  }
+
+  chat.append(back, head, messages);
+
+  if (!ticket.reply) {
+    const refresh = createElement('button', 'form__submit form__submit--ghost', 'Check for reply');
+    refresh.type = 'button';
+
+    refresh.addEventListener('click', async () => {
+      refresh.disabled = true;
+      refresh.textContent = 'Checking…';
+
+      try {
+        const fresh = await findTicket(ticket.ticket);
+        showChat(fresh.found ? fresh : ticket);
+      } catch {
+        refresh.disabled = false;
+        refresh.textContent = 'Check for reply';
+      }
+    });
+
+    chat.append(refresh);
+  }
+
+  modalBody.replaceChildren(chat);
+  modalBody.scrollTop = 0;
+}
+
+function createTicketSuccess(ticket) {
+  const success = createElement('div', 'success');
+  success.append(
+    createElement('h3', 'card__title', 'Message sent'),
+    createElement('p', 'card__price', ticket),
+    createElement('p', 'card__text', 'Save this number. Enter it below to see our reply.')
+  );
+  return success;
+}
+
+function createTicketForm() {
+  const form = createElement('form', 'form');
+  const type = createChoice(ticketTypes, () => {});
+  const message = createInput('textarea', 'Describe your problem', 'Message', 1500);
+  const trap = createElement('input', 'form__trap');
+  const error = createElement('p', 'form__error');
+  const submit = createElement('button', 'form__submit', 'Send message');
+
+  form.noValidate = true;
+  trap.type = 'text';
+  trap.tabIndex = -1;
+  trap.autocomplete = 'off';
+  trap.setAttribute('aria-hidden', 'true');
+  submit.type = 'submit';
+  error.setAttribute('role', 'alert');
+
+  form.append(
+    createElement('h3', 'card__title', 'Write to us'),
+    createField('Problem type', type.node),
+    createField('Message', message),
+    trap,
+    error,
+    submit
+  );
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const data = { type: type.value, message: message.value.trim(), website: trap.value };
+
+    if (!data.type || !data.message) {
+      error.textContent = 'Choose a problem type and describe the problem.';
+      return;
+    }
+
+    error.textContent = '';
+    submit.disabled = true;
+    submit.textContent = 'Sending…';
+
+    try {
+      const { ticket } = await sendTicket(data);
+      form.replaceWith(createTicketSuccess(ticket));
+    } catch {
+      error.textContent = 'Could not send the message. Try again later.';
+      submit.disabled = false;
+      submit.textContent = 'Send message';
+    }
+  });
+
+  return form;
+}
+
+function createTicketLookup() {
+  const block = createElement('div', 'lookup');
+  const row = createElement('div', 'lookup__row');
+  const input = createInput('input', '0'.repeat(ticketDigits), 'Ticket number', 10);
+  const status = createElement('p', 'form__hint');
+
+  input.inputMode = 'numeric';
+  input.autocomplete = 'off';
+  row.append(createElement('span', 'lookup__prefix', 'C'), input);
+  block.append(createElement('h3', 'card__title', 'Open an existing ticket'), row, status);
+
+  input.addEventListener('input', async () => {
+    input.value = input.value.replace(/\D/g, '').slice(0, ticketDigits);
+    status.className = 'form__hint';
+    status.textContent = '';
+
+    if (input.value.length < ticketDigits) return;
+
+    const value = input.value;
+    status.textContent = 'Checking…';
+
+    try {
+      const ticket = await findTicket(`C${value}`);
+
+      if (input.value !== value) return;
+
+      if (ticket.found) {
+        showChat(ticket);
+      } else {
+        status.className = 'form__error';
+        status.textContent = 'Ticket not found. Check the number.';
+      }
+    } catch {
+      status.className = 'form__error';
+      status.textContent = 'Could not load the ticket. Try again later.';
+    }
+  });
+
+  return block;
+}
+
+function renderContact() {
+  const wrapper = createElement('div', 'contact');
+  wrapper.append(createTicketForm(), createElement('div', 'contact__divider', 'or'), createTicketLookup());
+  return wrapper;
+}
