@@ -3,7 +3,7 @@
 
   const script = document.currentScript || document.querySelector('script[src*="badge.js"]');
   const origin = 'https://formis.space';
-  const position = ['left', 'center', 'right'].includes(script?.dataset.position) ? script.dataset.position : 'right';
+  const position = ['left', 'center', 'right'].includes(script?.dataset?.position) ? script.dataset.position : 'right';
   const fontUrl = 'https://fonts.googleapis.com/css2?family=Cal+Sans&display=swap';
 
   if (!document.querySelector(`link[href="${fontUrl}"]`)) {
@@ -23,14 +23,17 @@
   style.textContent = `
     :host {
       all: initial;
-      position: fixed;
-      bottom: calc(18px + env(safe-area-inset-bottom, 0px));
-      z-index: 2147483000;
+      position: fixed !important;
+      bottom: calc(18px + env(safe-area-inset-bottom, 0px)) !important;
+      z-index: 2147483647 !important;
+      pointer-events: auto;
+      transform: none !important;
+      filter: none !important;
     }
 
-    :host([data-position="right"]) { right: 18px; }
-    :host([data-position="left"]) { left: 18px; }
-    :host([data-position="center"]) { left: 50%; transform: translateX(-50%); }
+    :host([data-position="right"]) { right: 18px !important; left: auto !important; }
+    :host([data-position="left"]) { left: 18px !important; right: auto !important; }
+    :host([data-position="center"]) { left: 50% !important; right: auto !important; transform: translateX(-50%) !important; }
 
     a {
       display: flex;
@@ -66,9 +69,9 @@
     }
 
     @media (max-width: 600px) {
-      :host { bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
-      :host([data-position="right"]) { right: 12px; }
-      :host([data-position="left"]) { left: 12px; }
+      :host { bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important; }
+      :host([data-position="right"]) { right: 12px !important; }
+      :host([data-position="left"]) { left: 12px !important; }
       a { padding: 12px 20px; font-size: 15px; }
       .by { display: none; }
     }
@@ -78,7 +81,7 @@
     }
 
     @media print {
-      :host { display: none; }
+      :host { display: none !important; }
     }
   `;
 
@@ -98,5 +101,6 @@
 
   link.append(by, name);
   root.append(style, link);
-  document.body.append(host);
+
+  (document.body || document.documentElement).appendChild(host);
 })();
