@@ -48,13 +48,19 @@
       font: 400 17px/1 "Cal Sans", system-ui, sans-serif;
       text-decoration: none;
       white-space: nowrap;
-      transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1), border-color 0.3s;
-      animation: in 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.8s backwards;
+      /* Плавный переход при наведении (увеличено время и изменена кривая) */
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
+                  border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                  box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      /* Быстрое и мягкое появление (0.35s вместо 0.6s, пауза 0.2s вместо 0.8s) */
+      animation: in 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.2s backwards;
+      will-change: transform;
     }
 
     a:hover {
-      transform: translateY(-2px);
+      transform: translateY(-3px);
       border-color: #5a5a5a;
+      box-shadow: 0 14px 35px rgba(0, 0, 0, 0.5);
     }
 
     a:focus-visible {
@@ -65,7 +71,14 @@
     .by { color: #8c8c8c; }
 
     @keyframes in {
-      from { opacity: 0; transform: translateY(8px); }
+      from { 
+        opacity: 0; 
+        transform: translateY(12px) scale(0.96); 
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
 
     @media (max-width: 600px) {
