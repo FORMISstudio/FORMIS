@@ -61,23 +61,6 @@
 
     .by { color: #8c8c8c; }
 
-    .name {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .arrow {
-      color: #8c8c8c;
-      font-size: 15px;
-      transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1), color 0.3s;
-    }
-
-    a:hover .arrow {
-      color: #fff;
-      transform: translate(2px, -2px);
-    }
-
     @keyframes in {
       from { opacity: 0; transform: translateY(8px); }
     }
@@ -91,7 +74,7 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      a, .arrow { animation: none; transition: none; }
+      a { animation: none; transition: none; }
     }
 
     @media print {
@@ -111,12 +94,7 @@
 
   const name = document.createElement('span');
   name.className = 'name';
-  name.append('formis.space');
-
-  const arrow = document.createElement('span');
-  arrow.className = 'arrow';
-  arrow.textContent = '\u2197';
-  name.append(arrow);
+  name.textContent = 'formis.space';
 
   link.append(by, name);
   root.append(style, link);
