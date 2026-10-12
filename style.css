@@ -1593,3 +1593,14 @@ a.form__submit {
     height: min(460px, 62dvh);
   }
 }
+
+.download {
+  margin-top: 8px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.download__result {
+  display: grid;
+  gap: 10px;
+}

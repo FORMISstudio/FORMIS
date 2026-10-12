@@ -10,7 +10,8 @@ const config = {
     guides: '1CqmaXEMdm8mryOhGViVcjk4DUFRIC-GZLaeZw9gxOnk'
   },
   orderEndpoint: 'https://script.google.com/macros/s/AKfycbwT317xHa5NF9fqSABOFfmMmb1ofQPxHUdxTRcMofQySKvo42D85aOHg_hC_CGdmFcamQ/exec',
-  assistantEndpoint: 'https://formisai.formisworkk.workers.dev/'
+  assistantEndpoint: 'https://formisai.formisworkk.workers.dev/',
+  filesEndpoint: 'https://files.formis.space'
 };
 
 tiles.forEach((tile) => { 
@@ -65,8 +66,7 @@ const usernameHints = {
 const aboutText = [
   'FORMIS is a design and web development studio. We build websites for people and businesses, from one-page bio sites to full projects.',
   'We take care of the whole path: design, development and launch. You describe the idea, we turn it into a clean and fast website.',
-  'Every project is made by hand and adjusted to the person behind it.',
-  'Credits: xiyyxs, kionylixe'
+  'Every project is made by hand and adjusted to the person behind it.'
 ];
 
 const sections = {
@@ -663,6 +663,7 @@ function createOrderView(order, id) {
     view.append(...createPaymentActions(order, method, id));
   }
 
+  if (order.paid && /^done$/i.test(order.stage)) view.append(createDownloadBlock(id));
   return view;
 }
 
@@ -1152,3 +1153,69 @@ document.addEventListener('keydown', (event) => {
 });
 
 assistant.inert = true;
+
+const linkedCode = new URLSearchParams(window.location.search).get('code') || '';
+
+function formatSize(bytes) {
+  return bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+function createDownloadBlock(id) {
+  const block = createElement('form', 'form download');
+  const input = createInput('input', 'Download code', 'Download code', 40);
+  const error = createElement('p', 'form__error');
+  const submit = createElement('button', 'form__submit', 'Find my files');
+  const result = createElement('div', 'download__result');
+
+  block.noValidate = true;
+  submit.type = 'submit';
+  error.setAttribute('role', 'alert');
+  input.value = linkedCode;
+
+  block.append(
+    createElement('h3', 'card__title', 'Download your website'),
+    createField('Download code', input),
+    error,
+    submit,
+    result
+  );
+
+  block.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const code = input.value.trim();
+
+    if (!code) {
+      error.textContent = 'Enter the download code we sent you.';
+      return;
+    }
+
+    error.textContent = '';
+    result.replaceChildren();
+    submit.disabled = true;
+    submit.textContent = 'Checking…';
+
+    try {
+      const query = `order=${encodeURIComponent(id)}&code=${encodeURIComponent(code)}`;
+      const response = await fetch(`${config.filesEndpoint}/info?${query}`);
+      const info = await response.json();
+
+      if (info.ok) {
+        const until = new Date(info.until).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+        const link = createElement('a', 'form__submit', `Download ${info.name} (${formatSize(info.size)})`);
+
+        link.href = `${config.filesEndpoint}/download?${query}`;
+        result.append(link, createElement('p', 'form__hint', `Available until ${until}. Please keep your own copy.`));
+      } else {
+        error.textContent = info.error || 'Wrong code. If you think this is a mistake, use Contact us.';
+      }
+    } catch {
+      error.textContent = 'Could not check the files. Please try again later.';
+    }
+
+    submit.disabled = false;
+    submit.textContent = 'Find my files';
+  });
+
+  return block;
+}
