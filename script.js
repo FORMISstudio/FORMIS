@@ -11,7 +11,7 @@ const config = {
   },
   orderEndpoint: 'https://script.google.com/macros/s/AKfycbwT317xHa5NF9fqSABOFfmMmb1ofQPxHUdxTRcMofQySKvo42D85aOHg_hC_CGdmFcamQ/exec',
   assistantEndpoint: 'https://formisai.formisworkk.workers.dev/',
-  filesEndpoint: 'https://files.formis.space'
+  filesEndpoint: 'https://formis-files.formisworkk.workers.dev'
 };
 
 tiles.forEach((tile) => { 
