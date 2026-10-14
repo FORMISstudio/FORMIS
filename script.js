@@ -355,18 +355,24 @@ function createConsent() {
   const node = createElement('label', 'consent');
   const box = createElement('input');
   const text = createElement('span');
-  const [before, linkText, after] = 'I agree with the [terms of work]'.split(/[\[\]]/);
-  const link = createElement('a', '', linkText);
+  const [start, termsText, middle, privacyText, end] = 'I agree with the [terms of work] and [privacy policy]'.split(/[\[\]]/);
+  const terms = createElement('a', '', termsText);
+  const privacy = createElement('a', '', privacyText);
 
   box.type = 'checkbox';
-  link.href = '?guide=terms-of-work';
-  link.target = '_blank';
-  link.rel = 'noopener noreferrer';
-  text.append(before, link, after);
+
+  [[terms, 'terms-of-work'], [privacy, 'privacy-policy']].forEach(([link, slug]) => {
+    link.href = `?guide=${slug}`;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+  });
+
+  text.append(start, terms, middle, privacy, end);
   node.append(box, text);
 
   return { node, box };
 }
+
 
 function renderOrder() {
   const form = createElement('form', 'form');
@@ -435,7 +441,7 @@ function renderOrder() {
     }
 
     if (!consent.box.checked) {
-      error.textContent = 'Please accept the terms of work to continue.';
+      error.textContent = 'Please accept the terms of work and the privacy policy to continue.';
       return;
     }
 
