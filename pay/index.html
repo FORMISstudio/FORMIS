@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#080808">
+  <title>FORMIS Pay</title>
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cal+Sans&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/pay/pay.css">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="/pay/" aria-label="FORMIS Pay">
+      <span class="brand__mark">FORMIS</span>
+      <span class="brand__name">Pay</span>
+    </a>
+    <a class="top__back" href="/">Back to formis.space</a>
+  </header>
+
+  <main class="shell">
+    <ol class="steps" id="steps" aria-label="Progress">
+      <li><span>01</span>Order</li>
+      <li><span>02</span>Country</li>
+      <li><span>03</span>Payment</li>
+      <li><span>04</span>Done</li>
+    </ol>
+
+    <div class="layout">
+      <section class="panel" id="panel" aria-live="polite"></section>
+      <aside class="summary" id="summary" aria-label="Order summary"></aside>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <span>FORMIS Pay shows payment instructions for your order. Questions: <a href="mailto:formisworkk@gmail.com">formisworkk@gmail.com</a></span>
+  </footer>
+
+  <script src="/pay/pay.js"></script>
+</body>
+</html>
