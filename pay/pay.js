@@ -92,16 +92,18 @@ function renderSummary() {
   const list = make('dl');
 
   if (!order) {
-    list.append(summaryRow('Order', '—'), summaryRow('Amount', '—'), summaryRow('Status', '—'));
-  } else {
-    const status = make('span', `status ${order.paid ? 'status--paid' : 'status--unpaid'}`, order.paid ? 'Paid' : 'Awaiting payment');
-    list.append(
-      summaryRow('Order', state.id),
-      summaryRow('Client', mask(order.username)),
-      summaryRow('Amount', order.amount, 'summary__amount'),
-      summaryRow('Status', status)
-    );
+    summary.replaceChildren();
+    return;
   }
+
+  const status = make('span', `status ${order.paid ? 'status--paid' : 'status--unpaid'}`, order.paid ? 'Paid' : 'Awaiting payment');
+
+  list.append(
+    summaryRow('Order', state.id),
+    summaryRow('Client', mask(order.username)),
+    summaryRow('Amount', order.amount, 'summary__amount'),
+    summaryRow('Status', status)
+  );
 
   summary.replaceChildren(list);
 }
@@ -130,7 +132,7 @@ function renderOrderStep(errorText = '') {
   submit.type = 'submit';
 
   field.append(label, input);
-  form.append(field, error, submit);
+  form.append(make('p', 'hint', 'The order number was shown after you sent your request and in our message to you.'), field, error, submit);
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -458,6 +460,15 @@ function renderDone(kind) {
   body.append(noticeNode(text, 'notice--ok'), actions);
   showPanel(4, 'Step 4 of 4', title, body);
 }
+
+const brandImage = document.querySelector('.brand img');
+
+function useBrandText() {
+  brandImage.replaceWith(make('span', 'brand__text', 'FORMIS Pay'));
+}
+
+if (brandImage.complete && brandImage.naturalWidth === 0) useBrandText();
+else brandImage.addEventListener('error', useBrandText, { once: true });
 
 renderSummary();
 

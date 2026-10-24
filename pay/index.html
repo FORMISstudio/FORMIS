@@ -9,30 +9,31 @@
   <link rel="icon" href="/favicon.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cal+Sans&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cal+Sans&family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/pay/pay.css">
 </head>
 <body>
   <header class="top">
     <a class="brand" href="/pay/" aria-label="FORMIS Pay">
-      <span class="brand__mark">FORMIS</span>
-      <span class="brand__name">Pay</span>
+      <img src="/pay/logo.png" alt="FORMIS Pay" height="40">
     </a>
-    <a class="top__back" href="/">Back to formis.space</a>
+    <a class="badge" href="/" aria-label="Created by FORMIS, formis.space">
+      <span class="badge__by">Created by</span>
+      <span>formis.space</span>
+    </a>
   </header>
 
-  <main class="shell">
-    <ol class="steps" id="steps" aria-label="Progress">
-      <li><span>01</span>Order</li>
-      <li><span>02</span>Country</li>
-      <li><span>03</span>Payment</li>
-      <li><span>04</span>Done</li>
-    </ol>
-
-    <div class="layout">
+  <main class="stage">
+    <article class="card">
+      <ol class="steps" id="steps" aria-label="Progress">
+        <li><span>01</span><b>Order</b></li>
+        <li><span>02</span><b>Country</b></li>
+        <li><span>03</span><b>Payment</b></li>
+        <li><span>04</span><b>Done</b></li>
+      </ol>
+      <div class="summary" id="summary" aria-label="Order summary"></div>
       <section class="panel" id="panel" aria-live="polite"></section>
-      <aside class="summary" id="summary" aria-label="Order summary"></aside>
-    </div>
+    </article>
   </main>
 
   <footer class="foot">
