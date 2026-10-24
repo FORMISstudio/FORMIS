@@ -239,7 +239,8 @@ async function loadMethods() {
   const data = await getJson(query);
 
   if (!data.found) throw new UserError('Order not found. Please start again.');
-  if (!data.methods?.length) throw new UserError('No payment method is set up for this country yet. Please contact us.');
+  if (!Array.isArray(data.methods)) throw new UserError('Payment methods are temporarily unavailable. Please contact us.');
+  if (!data.methods.length) throw new UserError('No payment method is set up for this country yet. Please contact us.');
 
   state.methods = data.methods;
   state.method = data.methods[0];
@@ -262,7 +263,7 @@ function detailBlock(label, value) {
 
   copy.addEventListener('click', async () => {
     try {
-      await navigator.clipboard.writeText(value);
+      await navigator.clipboard.writeText(/^[\d\s]+$/.test(value) ? value.replace(/\s+/g, '') : value);
       copy.textContent = 'Copied';
     } catch {
       copy.textContent = 'Select and copy';
@@ -361,6 +362,33 @@ function createPaidButton() {
   return wrap;
 }
 
+function renderSteps(text) {
+  const groups = [{ title: '', items: [] }];
+
+  text
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .forEach((line) => {
+      if (line.startsWith('# ')) groups.push({ title: line.slice(2), items: [] });
+      else groups[groups.length - 1].items.push(line);
+    });
+
+  const wrap = make('div', 'guide');
+
+  groups
+    .filter((group) => group.items.length)
+    .forEach((group) => {
+      const list = make('ol', 'instructions');
+      group.items.forEach((line) => list.append(make('li', '', fill(line))));
+
+      if (group.title) wrap.append(make('h2', 'instructions__title', group.title));
+      wrap.append(list);
+    });
+
+  return wrap;
+}
+
 function renderPaymentStep() {
   const method = state.method;
   const body = make('div', 'panel__body');
@@ -388,7 +416,7 @@ function renderPaymentStep() {
   body.append(detailBlock('Amount to pay', state.order.amount), detailBlock('Payment reference (order number)', state.id));
 
   if (url) {
-    const link = make('a', 'btn', 'Open payment page');
+    const link = make('a', 'btn', method.method === 'cert' ? 'Open gift card shop' : 'Open payment page');
     link.href = url.href;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
@@ -397,11 +425,7 @@ function renderPaymentStep() {
     body.append(detailBlock(method.method === 'card' ? 'Card number' : 'Payment details', method.details));
   }
 
-  if (method.steps) {
-    const list = make('ol', 'instructions');
-    method.steps.split(/\n+/).filter(Boolean).forEach((line) => list.append(make('li', '', fill(line))));
-    body.append(list);
-  }
+  if (method.steps) body.append(renderSteps(method.steps));
 
   if (method.note) body.append(noticeNode(fill(method.note)));
 
