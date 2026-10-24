@@ -355,19 +355,23 @@ function createConsent() {
   const node = createElement('label', 'consent');
   const box = createElement('input');
   const text = createElement('span');
-  const [before, linkText, after] = 'I agree with the [terms of work]'.split(/[\[\]]/);
-  const link = createElement('a', '', linkText);
+  const [start, termsText, middle, privacyText, end] = 'I agree with the [terms of work] and [privacy policy]'.split(/[\[\]]/);
+  const terms = createElement('a', '', termsText);
+  const privacy = createElement('a', '', privacyText);
 
   box.type = 'checkbox';
-  link.href = '?guide=terms-of-work';
-  link.target = '_blank';
-  link.rel = 'noopener noreferrer';
-  text.append(before, link, after);
+
+  [[terms, 'terms-of-work'], [privacy, 'privacy-policy']].forEach(([link, slug]) => {
+    link.href = `?guide=${slug}`;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+  });
+
+  text.append(start, terms, middle, privacy, end);
   node.append(box, text);
 
   return { node, box };
 }
-
 function renderOrder() {
   const form = createElement('form', 'form');
   form.noValidate = true;
@@ -650,22 +654,21 @@ function createOrderView(order, id) {
 
   if (order.stage) list.append(createReceiptRow('Stage', order.stage));
 
-  const method = order.payment ? order.type : 'non-selected';
-  const paymentRow = order.paid ? null : createPaymentRow(order, method);
-
-  if (paymentRow) list.append(paymentRow);
-
   view.append(list);
 
   if (order.paid) {
     view.append(createElement('p', 'modal__note', 'This order is already paid. Thank you!'));
   } else {
-    view.append(...createPaymentActions(order, method, id));
+    const payLink = createElement('a', 'form__submit', 'Pay on FORMIS Pay');
+    payLink.href = `/pay/?order=${encodeURIComponent(id)}`;
+    view.append(createElement('p', 'modal__note', 'Choose your country and get payment instructions.'), payLink);
   }
 
   if (order.paid && /^done$/i.test(order.stage)) view.append(createDownloadBlock(id));
+
   return view;
 }
+
 
 function renderPay() {
   const form = createElement('form', 'form');
