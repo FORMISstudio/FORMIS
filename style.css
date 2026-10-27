@@ -92,6 +92,10 @@ button {
   gap: 6px;
 }
 
+.nav__image {
+  animation: drop-in 0.7s var(--ease) backwards;
+}
+
 .nav__item {
   position: relative;
   padding: 10px 16px;
@@ -105,14 +109,7 @@ button {
   animation: drop-in 0.7s var(--ease) backwards;
 }
 
-.nav_stamp {
-  position: relative;
-  padding: 10px 16px;
-  width: 100px;
-  height: 50px;
-}
-
-.nav_image {animation-delay: 0.25s; }
+.nav__image {animation-delay: 0.25s; }
 .nav__item:nth-child(1) { animation-delay: 0.3s; }
 .nav__item:nth-child(2) { animation-delay: 0.38s; }
 .nav__item:nth-child(3) { animation-delay: 0.46s; }
@@ -130,11 +127,11 @@ button {
   transform: scale(0.96);
 }
 
-.nav_stamp:hover {
+.nav__image:hover {
   transform: translateY(-2px);
 }
 
-.nav_stamp:active {
+.nav__image:active {
   transform: scale(0.96);
 }
 
